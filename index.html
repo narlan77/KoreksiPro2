@@ -120,7 +120,6 @@
         <table id="resultTable">
             <thead>
                 <tr id="headerRow">
-                    <th>Nomor Peserta</th>
                     <th>Nama Siswa</th>
                     <!-- Kolom S1 sampai S45 di-generate otomatis via JS -->
                 </tr>
@@ -171,37 +170,37 @@
 
     // 3. Logika pembersihan dan penataan data ke dalam tabel
     function processOCRText(text) {
-        // Bersihkan teks: Hanya sisakan huruf A-Z, a-z, dan spasi (Hapus angka, +, koma, tanda tanya, dll)
-        const cleanText = text.replace(/[^a-zA-Z\s]/g, "");
+        // Ekstrak nomor peserta (cari angka) - ambil 9 karakter terakhir
+        const nomorMatch = text.match(/\d+/);
+        let nomorPeserta = nomorMatch ? nomorMatch[0] : "000000000";
+        nomorPeserta = nomorPeserta.slice(-9); // Ambil 9 karakter terakhir
         
-        // Memisahkan teks berdasarkan baris atau spasi untuk simulasi input data
-        const words = cleanText.trim().split(/\s+/).filter(w => w.length > 0);
+        // Bersihkan teks: Hapus SEMUA karakter selain huruf (A-Z, a-z)
+        const cleanText = text.replace(/[^a-zA-Z]/g, "");
+        
+        // Pecah teks bersih per karakter
+        const characters = cleanText.split('').filter(c => c.trim().length > 0);
+        
+        // Ambil kata pertama sebagai nama siswa
+        const wordsForName = text.replace(/[^a-zA-Z\s]/g, "").trim().split(/\s+/);
+        const namaSiswa = wordsForName.length > 0 ? wordsForName[0].toUpperCase() : "SISWA";
+        
+        // Gabungkan: 9 karakter terakhir nomor peserta - nama siswa
+        const namaSiswaGabung = `${nomorPeserta}-${namaSiswa}`;
         
         const tbody = document.getElementById('tableBody');
         const row = document.createElement('tr');
         
-        // Simulasi ekstraksi identitas (Bisa disesuaikan dengan format kertas ujian Anda)
-        const nomorPesertaDummy = Math.floor(1000 + Math.random() * 9000); 
-        const namaSiswaDummy = words.slice(0, 2).join(" ").toUpperCase() || "SISWA BARU";
-
-        // Masukkan Nomor Peserta dan Nama ke kolom utama
-        row.innerHTML = `<td>${nomorPesertaDummy}</td><td>${namaSiswaDummy}</td>`;
+        // Masukkan Nama Siswa (Gabungan nomor peserta + nama)
+        row.innerHTML = `<td>${namaSiswaGabung}</td>`;
         
-        // Isi Kolom S1 sampai S40 dengan karakter huruf hasil pembersihan
-        let wordIndex = 0;
-        for (let i = 1; i <= 40; i++) {
-            // Ambil karakter huruf dari teks hasil scan secara berurutan
-            let charData = "-";
-            if(words[wordIndex]) {
-                charData = words[wordIndex].charAt(0).toUpperCase();
-                wordIndex++;
-            } else {
-                charData = "A"; // Default fallback jika teks hasil scan habis
-            }
+        // Isi Kolom S1 sampai S40 dengan karakter hasil pembersihan
+        for (let i = 0; i < 40; i++) {
+            let charData = characters[i] || ""; // Jika habis, kosong
             row.innerHTML += `<td>${charData}</td>`;
         }
         
-        // Isi Kolom S41 sampai S45 (Wajib Dikosongkan)
+        // Isi Kolom S41 sampai S45 (Dikosongkan)
         for (let i = 41; i <= 45; i++) {
             row.innerHTML += `<td></td>`;
         }
