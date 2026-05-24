@@ -12,7 +12,7 @@
             color: #333;
         }
         .container { 
-            max-width: 1200px; 
+            max-width: 1400px; 
             margin: auto; 
             background: white; 
             padding: 25px; 
@@ -46,8 +46,8 @@
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            font-size: 11px; 
-            min-width: 1500px; /* Memastikan kolom tidak terlalu berdempetan */
+            font-size: 12px; 
+            min-width: 1600px;
         }
         th, td { 
             border: 1px solid #e0e0e0; 
@@ -60,6 +60,10 @@
             font-weight: 600;
             position: sticky;
             top: 0;
+        }
+        th:nth-child(1), th:nth-child(2), th:nth-child(3) {
+            background-color: #2c3e50;
+            min-width: 120px;
         }
         tr:nth-child(even) { 
             background-color: #f8f9fa; 
@@ -98,6 +102,10 @@
             color: #7f8c8d;
             margin-top: 10px;
         }
+        .answer-cell {
+            font-weight: bold;
+            color: #2c3e50;
+        }
     </style>
 </head>
 <body>
@@ -108,8 +116,7 @@
     <!-- Bagian Upload / Ambil Foto -->
     <div class="upload-section" id="drop-area">
         <p style="font-size: 16px; margin-bottom: 15px;">Klik tombol di bawah ini untuk mengambil foto atau memilih file scan</p>
-        <!-- Tambahan attribute capture="environment" akan memerintahkan HP membuka kamera belakang langsung -->
-<input type="file" id="fileElem" accept="image/*" capture="environment" style="display:none" onchange="handleFiles(this.files)">
+        <input type="file" id="fileElem" accept="image/*" capture="environment" style="display:none" onchange="handleFiles(this.files)">
         <button class="btn btn-upload" onclick="document.getElementById('fileElem').click()">Ambil Foto / Pilih Gambar</button>
         <div id="statusOCR" class="status"></div>
     </div>
@@ -120,8 +127,10 @@
         <table id="resultTable">
             <thead>
                 <tr id="headerRow">
-                    <th>Nama Siswa</th>
-                    <!-- Kolom S1 sampai S45 di-generate otomatis via JS -->
+                    <th>Nama Lengkap</th>
+                    <th>Nomor Peserta</th>
+                    <th>S1</th>
+                    <!-- Kolom S2 sampai S45 di-generate otomatis via JS -->
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -140,9 +149,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
-    // 1. Generate Header Tabel S1 sampai S45 secara otomatis
+    // 1. Generate Header Tabel S2 sampai S45 secara otomatis
     const headerRow = document.getElementById('headerRow');
-    for (let i = 1; i <= 45; i++) {
+    for (let i = 2; i <= 45; i++) {
         const th = document.createElement('th');
         th.innerText = `S${i}`;
         headerRow.appendChild(th);
@@ -175,34 +184,35 @@
         let nomorPeserta = nomorMatch ? nomorMatch[0] : "000000000";
         nomorPeserta = nomorPeserta.slice(-9); // Ambil 9 karakter terakhir
         
-        // Bersihkan teks: Hapus SEMUA karakter selain huruf (A-Z, a-z)
-        const cleanText = text.replace(/[^a-zA-Z]/g, "");
-        
-        // Pecah teks bersih per karakter
-        const characters = cleanText.split('').filter(c => c.trim().length > 0);
-        
-        // Ambil kata pertama sebagai nama siswa
+        // Ambil nama lengkap (2 kata pertama)
         const wordsForName = text.replace(/[^a-zA-Z\s]/g, "").trim().split(/\s+/);
-        const namaSiswa = wordsForName.length > 0 ? wordsForName[0].toUpperCase() : "SISWA";
+        const namaPertama = wordsForName[0] ? wordsForName[0].toUpperCase() : "SISWA";
+        const namaKedua = wordsForName[1] ? wordsForName[1].toUpperCase() : "";
+        const namaLengkap = namaKedua ? `${namaPertama} ${namaKedua}` : namaPertama;
         
-        // Gabungkan: 9 karakter terakhir nomor peserta - nama siswa
-        const namaSiswaGabung = `${nomorPeserta}-${namaSiswa}`;
+        // HANYA ekstrak huruf A, B, C, D (uppercase) - hanya jawaban yang valid
+        const jawaban = text.match(/[ABCDabcd]/g) || [];
+        const jawabanValid = jawaban.map(j => j.toUpperCase());
         
         const tbody = document.getElementById('tableBody');
         const row = document.createElement('tr');
         
-        // Masukkan Nama Siswa (Gabungan nomor peserta + nama)
-        row.innerHTML = `<td>${namaSiswaGabung}</td>`;
+        // Kolom 1: Nama Lengkap
+        const tdNama = document.createElement('td');
+        tdNama.innerText = namaLengkap;
+        row.appendChild(tdNama);
         
-        // Isi Kolom S1 sampai S40 dengan karakter hasil pembersihan
-        for (let i = 0; i < 40; i++) {
-            let charData = characters[i] || ""; // Jika habis, kosong
-            row.innerHTML += `<td>${charData}</td>`;
-        }
+        // Kolom 2: Nomor Peserta
+        const tdNomor = document.createElement('td');
+        tdNomor.innerText = nomorPeserta;
+        row.appendChild(tdNomor);
         
-        // Isi Kolom S41 sampai S45 (Dikosongkan)
-        for (let i = 41; i <= 45; i++) {
-            row.innerHTML += `<td></td>`;
+        // Kolom 3-47: Jawaban S1 sampai S45
+        for (let i = 0; i < 45; i++) {
+            const td = document.createElement('td');
+            td.className = 'answer-cell';
+            td.innerText = jawabanValid[i] || "";
+            row.appendChild(td);
         }
         
         // Tambahkan baris baru ke dalam tabel utama
