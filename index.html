@@ -103,18 +103,18 @@
 <body>
 
 <div class="container">
-    <h2>Scanner Lembar Jawaban (OCR ke Tabel Excel)</h2>
+    <h2>Scanner Lembar Jawaban</h2>
     
     <!-- Bagian Upload / Ambil Foto -->
     <div class="upload-section" id="drop-area">
-        <p style="font-size: 16px; margin-bottom: 15px;">Klik tombol di bawah ini untuk mengambil foto lewat Kamera HP atau memilih file scan</p>
+        <p style="font-size: 16px; margin-bottom: 15px;">Klik tombol di bawah ini untuk mengambil foto atau memilih file scan</p>
         <input type="file" id="fileElem" accept="image/*" style="display:none" onchange="handleFiles(this.files)">
         <button class="btn btn-upload" onclick="document.getElementById('fileElem').click()">Ambil Foto / Pilih Gambar</button>
         <div id="statusOCR" class="status"></div>
     </div>
 
     <!-- Bagian Preview Tabel -->
-    <h3>Preview Data Hasil Scan</h3>
+    <h3>Preview Data</h3>
     <div class="table-container">
         <table id="resultTable">
             <thead>
